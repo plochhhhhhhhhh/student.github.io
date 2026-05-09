@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>校园探索 · 地图导览</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #EFF3F8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            padding: 20px;
+        }
+
+        .phone-mock {
+            width: 375px;
+            height: 700px;
+            background: #FFFFFF;
+            border-radius: 48px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3), 0 0 0 8px #2C2F36, 0 0 0 12px #1A1C21;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .camera-bar {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 34px;
+            background: #0F0F10;
+            border-radius: 28px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            backdrop-filter: blur(2px);
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+        }
+        .camera-bar::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: #34c759;
+            border-radius: 50%;
+            opacity: 0.9;
+            margin-right: 4px;
+        }
+        .camera-bar::after {
+            content: "";
+            width: 22px;
+            height: 8px;
+            background: #2E2F33;
+            border-radius: 12px;
+            margin-left: 4px;
+        }
+
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 60px 20px 16px;
+            scrollbar-width: thin;
+        }
+        .app-content::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            margin-top: 45px;
+        }
+        .map-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #1E2F3F;
+            letter-spacing: -0.5px;
+        }
+        .camera-icon {
+            color: #C1CCDC;
+            font-size: 22px;
+            cursor: pointer;
+            transition: opacity 0.1s;
+        }
+        .camera-icon:active {
+            opacity: 0.6;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            background: #F2F4F8;
+            border-radius: 40px;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: #2C3E5A;
+            font-weight: 500;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.1s;
+            z-index: 30;
+        }
+        .back-link:active {
+            background: #E6E9F0;
+        }
+
+        .map-image-container {
+            margin-top: 8px;
+            margin-bottom: 24px;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #EEF2F8;
+            background: #F8FAFE;
+        }
+        .campus-map {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+        }
+
+        .buildings-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .building-card {
+            flex: 1;
+            background: #FFFFFF;
+            border-radius: 28px;
+            padding: 18px 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid #F0F0F0;
+            transition: transform 0.1s ease, background 0.1s ease;
+            cursor: pointer;
+        }
+        .building-card:active {
+            transform: scale(0.98);
+            background: #F8FAFE;
+        }
+        .building-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1E2A3A;
+            margin-bottom: 6px;
+        }
+        .building-sub {
+            font-size: 13px;
+            color: #6C7A8E;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .visitor-badge {
+            background: #EEF2FF;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #3F5E9C;
+        }
+        .trend-icon {
+            color: #10b981;
+            font-size: 12px;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .action-btn {
+            background: #FFFFFF;
+            border-radius: 28px;
+            padding: 18px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.2s;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.02);
+            border: 1px solid #F0F2F6;
+            text-decoration: none;
+            display: block;
+        }
+        .action-btn:active {
+            transform: scale(0.97);
+        }
+        .btn-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+            color: #2D3E5F;
+        }
+        .btn-label {
+            font-weight: 700;
+            font-size: 18px;
+            color: #1F2E45;
+            letter-spacing: -0.3px;
+        }
+        .btn-sub {
+            font-size: 11px;
+            color: #8895AA;
+            margin-top: 6px;
+        }
+
+        .accessibility-wrapper {
+            margin-top: 12px;
+            margin-bottom: 12px;
+        }
+        .accessibility-btn {
+            background: linear-gradient(135deg, #4A2F8A 0%, #2E1A5E 100%);
+            border-radius: 60px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.1s;
+            text-decoration: none;
+        }
+        .accessibility-btn:active {
+            transform: scale(0.98);
+        }
+        .acc-text {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .acc-text i {
+            font-size: 28px;
+            color: #E0CFFF;
+        }
+        .acc-text span {
+            font-weight: 700;
+            font-size: 18px;
+            color: white;
+            letter-spacing: -0.2px;
+        }
+        .acc-arrow {
+            color: #FFD966;
+            font-size: 20px;
+        }
+
+        .bottom-nav {
+            background: #FFFFFF;
+            border-top: 1px solid #F0F2F6;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 10px 20px 18px;
+            width: 100%;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: opacity 0.1s ease;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            padding: 4px 0;
+        }
+        .nav-item:active {
+            opacity: 0.6;
+            transform: scale(0.96);
+        }
+        .nav-icon {
+            font-size: 22px;
+            margin-bottom: 2px;
+        }
+        .nav-label {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+        }
+        .nav-item-map .nav-icon,
+        .nav-item-map .nav-label {
+            color: #2C5F9A;
+        }
+        .nav-item-other .nav-icon,
+        .nav-item-other .nav-label {
+            color: #8E9AAE;
+        }
+        .nav-item:hover .nav-icon,
+        .nav-item:hover .nav-label {
+            color: #2C5F9A;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<div class="phone-mock">
+    <div class="camera-bar"></div>
+    <div class="app-content">
+        <a href="welcome-page.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to welcome page</a>
+        <div class="map-header">
+            <div class="map-title">Map</div>
+            <i class="fas fa-camera camera-icon" id="cameraIcon"></i>
+        </div>
+        <div class="map-image-container">
+            <img class="campus-map" src="aero-north-campus.jpg" alt="Campus Map">
+        </div>
+        <div class="buildings-row">
+            <div class="building-card" id="sdBuildingCard">
+                <div class="building-name">Science Building D (SD)</div>
+                <div class="building-sub">
+                    <i class="fas fa-flask" style="color:#5B7DB1;"></i> 
+                    <span>Research Center</span>
+                </div>
+            </div>
+            <div class="building-card" id="cbBuildingCard">
+                <div class="building-name">Central Building (CB)</div>
+                <div class="building-sub">
+                    <span class="visitor-badge"><i class="fas fa-chart-line trend-icon"></i> 85% visitors</span>
+                    <span style="font-size: 12px;">Popular spot</span>
+                </div>
+            </div>
+        </div>
+        <div class="action-grid">
+            <a href="library.html" class="action-btn"><i class="fas fa-book btn-icon"></i><div class="btn-label">Library</div><div class="btn-sub">📖 Academic resources</div></a>
+            <a href="canteen.html" class="action-btn"><i class="fas fa-utensils btn-icon"></i><div class="btn-label">Canteen</div><div class="btn-sub">🍜 Flavored cuisine</div></a>
+            <a href="lab.html" class="action-btn"><i class="fas fa-flask btn-icon"></i><div class="btn-label">Lab</div><div class="btn-sub">🔬 Innovation laboratory</div></a>
+        </div>
+        <div class="accessibility-wrapper">
+            <div class="accessibility-btn" id="accessibilityBtn">
+                <div class="acc-text">
+                    <i class="fas fa-universal-access"></i>
+                    <span>Accessibility</span>
+                </div>
+                <div class="acc-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom-nav">
+        <div class="nav-item nav-item-map" id="navMap"><i class="fas fa-map-marker-alt nav-icon"></i><span class="nav-label">Map</span></div>
+        <div class="nav-item nav-item-other" id="navExplore"><i class="fas fa-compass nav-icon"></i><span class="nav-label">Explore</span></div>
+        <div class="nav-item nav-item-other" id="navProfile"><i class="fas fa-user-circle nav-icon"></i><span class="nav-label">Profile</span></div>
+    </div>
+</div>
+
+<script>
+    // 底部导航跳转
+    const mapBtn = document.getElementById('navMap');
+    const exploreBtn = document.getElementById('navExplore');
+    const profileBtn = document.getElementById('navProfile');
+    mapBtn.addEventListener('click', () => window.location.href = 'map.html');
+    exploreBtn.addEventListener('click', () => window.location.href = 'explore.html');
+    profileBtn.addEventListener('click', () => window.location.href = 'profile.html');
+
+    // Science Building D 卡片跳转
+    const sdCard = document.getElementById('sdBuildingCard');
+    if (sdCard) {
+        sdCard.addEventListener('click', () => {
+            window.location.href = 'Science Building D (SD)-Academics.html';
+        });
+    }
+
+    // 照相机图标跳转
+    const cameraIcon = document.getElementById('cameraIcon');
+    if (cameraIcon) {
+        cameraIcon.addEventListener('click', () => {
+            window.location.href = 'camera-view.html';
+        });
+    }
+
+    // Accessibility 按钮跳转
+    const accessibilityBtn = document.getElementById('accessibilityBtn');
+    if (accessibilityBtn) {
+        accessibilityBtn.addEventListener('click', () => {
+            window.location.href = 'accessibility.html';
+        });
+    }
+
+    // Central Building (CB) 卡片跳转
+    const cbCard = document.getElementById('cbBuildingCard');
+    if (cbCard) {
+        cbCard.addEventListener('click', () => {
+            window.location.href = 'cb.html';
+        });
+    }
+</script>
+</body>
+</html>
