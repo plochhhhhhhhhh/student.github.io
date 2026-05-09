@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>个人资料 · 校园探索</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #EFF3F8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            padding: 20px;
+        }
+
+        /* 手机外框 — 完全复刻 map.html 的样式（含黑色边框 + 摄像头区域） */
+        .phone-mock {
+            width: 375px;
+            height: 700px;
+            background: #FFFFFF;
+            border-radius: 48px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3), 0 0 0 8px #2C2F36, 0 0 0 12px #1A1C21;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 顶部黑色摄像头区域 (黑条) — 与 map.html 完全一致 */
+        .camera-bar {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 34px;
+            background: #0F0F10;
+            border-radius: 28px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            backdrop-filter: blur(2px);
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+        }
+        .camera-bar::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: #34c759;
+            border-radius: 50%;
+            opacity: 0.9;
+            margin-right: 4px;
+        }
+        .camera-bar::after {
+            content: "";
+            width: 22px;
+            height: 8px;
+            background: #2E2F33;
+            border-radius: 12px;
+            margin-left: 4px;
+        }
+
+        /* 可滚动内容区，避开摄像头区域和底部导航栏 */
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 60px 20px 16px;
+            scrollbar-width: thin;
+        }
+        .app-content::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        /* 用户头部 */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .avatar {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(145deg, #D9E2EF, #C8D3E5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4A627A;
+            font-size: 36px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .user-info {
+            flex: 1;
+        }
+        .user-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1E2F3F;
+            margin-bottom: 4px;
+        }
+        .user-role {
+            font-size: 14px;
+            font-weight: 500;
+            color: #7E8C9E;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .user-role i {
+            font-size: 12px;
+            color: #2C5F9A;
+        }
+
+        /* 探索进度卡片 */
+        .progress-card {
+            background: #F8FAFE;
+            border-radius: 32px;
+            padding: 20px;
+            margin-bottom: 28px;
+            border: 1px solid #EEF2F9;
+        }
+        .progress-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1E2F3F;
+            margin-bottom: 12px;
+        }
+        .percentage {
+            font-size: 36px;
+            font-weight: 800;
+            color: #2C5F9A;
+            margin-bottom: 8px;
+        }
+        .progress-bar-bg {
+            background: #E6EDF6;
+            border-radius: 20px;
+            height: 10px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #2C5F9A;
+            border-radius: 20px;
+            transition: width 0.3s ease;
+        }
+        .progress-sub {
+            font-size: 13px;
+            color: #6C7A8E;
+            margin-top: 12px;
+            line-height: 1.4;
+        }
+
+        /* 成就区域 */
+        .achievements-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1E2F3F;
+            margin-bottom: 16px;
+        }
+        .achievement-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #FFFFFF;
+            border-radius: 24px;
+            padding: 12px 16px;
+            border: 1px solid #F0F2F6;
+            transition: transform 0.1s ease;
+            cursor: pointer;
+        }
+        .achievement-item:active {
+            transform: scale(0.98);
+            background: #F8FAFE;
+        }
+        .achievement-icon {
+            width: 48px;
+            height: 48px;
+            background: #EEF3FC;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #2C5F9A;
+        }
+        .achievement-details {
+            flex: 1;
+        }
+        .achievement-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1E2F3F;
+            margin-bottom: 4px;
+        }
+        .achievement-meta {
+            font-size: 12px;
+            color: #8C9AB0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .locked-badge {
+            background: #EFF2F8;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #8E9AAE;
+        }
+
+        /* 底部导航栏 — 完全复刻 map.html 的结构，但 Profile 高亮 */
+        .bottom-nav {
+            background: #FFFFFF;
+            border-top: 1px solid #F0F2F6;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 10px 20px 18px;
+            width: 100%;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: opacity 0.1s ease;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            padding: 4px 0;
+        }
+        .nav-item:active {
+            opacity: 0.6;
+            transform: scale(0.96);
+        }
+        .nav-icon {
+            font-size: 22px;
+            margin-bottom: 2px;
+        }
+        .nav-label {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+        }
+        .nav-item-profile .nav-icon,
+        .nav-item-profile .nav-label {
+            color: #2C5F9A;
+        }
+        .nav-item-other .nav-icon,
+        .nav-item-other .nav-label {
+            color: #8E9AAE;
+        }
+        .nav-item:hover .nav-icon,
+        .nav-item:hover .nav-label {
+            color: #2C5F9A;
+        }
+    </style>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<div class="phone-mock">
+    <!-- 黑色摄像头区域 (完全复刻 map.html) -->
+    <div class="camera-bar"></div>
+
+    <!-- 滚动内容区 -->
+    <div class="app-content">
+        <!-- 用户信息头部 -->
+        <div class="profile-header">
+            <div class="avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="user-info">
+                <div class="user-name">Student</div>
+                <div class="user-role">
+                       External Visitor
+                </div>
+            </div>
+        </div>
+
+        <!-- 探索进度卡片 -->
+        <div class="progress-card">
+            <div class="progress-title">Exploration Progress</div>
+            <div class="percentage" id="progressPercentage">0% EXPLORED</div>
+            <div class="progress-bar-bg">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- 成就区域 -->
+        <div class="achievements-title">
+            <i class="fas fa-trophy" style="color:#F5A623; margin-right: 8px;"></i> Achievements
+        </div>
+        <div class="achievement-list">
+            <!-- 成就 1: PB Explorer -->
+            <div class="achievement-item" data-unlocked="false" data-progress="25">
+                <div class="achievement-icon"><i class="fas fa-building"></i></div>
+                <div class="achievement-details">
+                    <div class="achievement-name">PB Explorer</div>
+                    <div class="achievement-meta">
+                        <span class="locked-badge"><i class="fas fa-lock"></i> Visit Public Building</span>
+                    </div>
+                </div>
+            </div>
+            <!-- 成就 2: Library Voyager -->
+            <div class="achievement-item" data-unlocked="false" data-progress="25">
+                <div class="achievement-icon"><i class="fas fa-book"></i></div>
+                <div class="achievement-details">
+                    <div class="achievement-name">Library Voyager</div>
+                    <div class="achievement-meta">
+                        <span class="locked-badge"><i class="fas fa-lock"></i> Explore the Library</span>
+                    </div>
+                </div>
+            </div>
+            <!-- 成就 3: Lab Pioneer -->
+            <div class="achievement-item" data-unlocked="false" data-progress="25">
+                <div class="achievement-icon"><i class="fas fa-flask"></i></div>
+                <div class="achievement-details">
+                    <div class="achievement-name">Lab Pioneer</div>
+                    <div class="achievement-meta">
+                        <span class="locked-badge"><i class="fas fa-lock"></i> Visit 3 Labs</span>
+                    </div>
+                </div>
+            </div>
+            <!-- 成就 4: Social Butterfly -->
+            <div class="achievement-item" data-unlocked="false" data-progress="25">
+                <div class="achievement-icon"><i class="fas fa-users"></i></div>
+                <div class="achievement-details">
+                    <div class="achievement-name">Social Butterfly</div>
+                    <div class="achievement-meta">
+                        <span class="locked-badge"><i class="fas fa-lock"></i> Visit 2 Professors</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航栏 (Profile 项高亮为蓝色，其余灰色) -->
+    <div class="bottom-nav">
+        <div class="nav-item nav-item-other" id="navMap">
+            <i class="fas fa-map-marker-alt nav-icon"></i>
+            <span class="nav-label">Map</span>
+        </div>
+        <div class="nav-item nav-item-other" id="navExplore">
+            <i class="fas fa-compass nav-icon"></i>
+            <span class="nav-label">Explore</span>
+        </div>
+        <div class="nav-item nav-item-profile" id="navProfile">
+            <i class="fas fa-user-circle nav-icon"></i>
+            <span class="nav-label">Profile</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 获取 DOM 元素
+    const progressFill = document.getElementById('progressFill');
+    const progressPercentage = document.getElementById('progressPercentage');
+    const achievementItems = document.querySelectorAll('.achievement-item');
+
+    // 当前进度值 (0-100)
+    let currentProgress = 0;
+
+    // 更新进度条和百分比显示
+    function updateProgress() {
+        const percent = currentProgress;
+        progressFill.style.width = percent + '%';
+        progressPercentage.innerText = percent + '% EXPLORED';
+    }
+
+    // 解锁单个成就
+    function unlockAchievement(item) {
+        // 标记为已解锁
+        item.setAttribute('data-unlocked', 'true');
+        // 更新图标和文字
+        const iconSpan = item.querySelector('.achievement-icon i');
+        if (iconSpan) {
+            // 切换图标为解锁样式
+            iconSpan.className = 'fas fa-unlock-alt';
+        }
+        const metaSpan = item.querySelector('.achievement-meta .locked-badge');
+        if (metaSpan) {
+            // 替换内容为绿色解锁状态
+            metaSpan.innerHTML = '<i class="fas fa-unlock-alt" style="color:#10b981;"></i> Unlocked just now';
+            metaSpan.style.background = '#E8F5E9';
+            metaSpan.style.color = '#2C5F9A';
+        }
+        // 增加进度
+        const progressValue = parseInt(item.getAttribute('data-progress')) || 25;
+        let newProgress = currentProgress + progressValue;
+        if (newProgress > 100) newProgress = 100;
+        currentProgress = newProgress;
+        updateProgress();
+    }
+
+    // 为每个成就添加点击事件
+    achievementItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isUnlocked = item.getAttribute('data-unlocked') === 'true';
+            if (!isUnlocked) {
+                unlockAchievement(item);
+            } else {
+                // 如果已经解锁，可以提示或忽略（演示无反馈）
+                console.log('Already unlocked');
+            }
+        });
+    });
+
+    // 底部导航跳转逻辑（保持原有功能）
+    const mapBtn = document.getElementById('navMap');
+    const exploreBtn = document.getElementById('navExplore');
+    const profileBtn = document.getElementById('navProfile');
+    
+    mapBtn.addEventListener('click', () => {
+        window.location.href = 'map.html';
+    });
+    exploreBtn.addEventListener('click', () => {
+        window.location.href = 'explore.html';
+    });
+    profileBtn.addEventListener('click', () => {
+        window.location.href = 'profile.html';
+    });
+</script>
+</body>
+</html>
